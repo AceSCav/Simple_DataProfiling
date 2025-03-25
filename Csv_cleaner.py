@@ -70,21 +70,35 @@ def duplicate_cleaner(df):
 
 
 def outlier_checker(df):
-    colunm = input("Enter the name of the column you want to check for outliers:")
+    colunm = input("Enter the name of the column you want to check for outliers: ").strip()
+    if colunm not in df.columns:
+        print("Column not found. Operation canceled.")
+        return
+    if not np.issubdtype(df[colunm].dtype, np.number):
+        print("Selected column is not numeric. Operation canceled.")
+        return
     Q1 = df[colunm].quantile(0.25)
     Q3 = df[colunm].quantile(0.75)
     IQR = Q3 - Q1
     lower_bound = Q1 - 1.5 * IQR
     upper_bound = Q3 + 1.5 * IQR
-    print('Lower Bound: ', lower_bound)
-    print('Upper Bound: ', upper_bound)
-    print('Remove Outliers??')
-    input = input('y/n: ')
-    if input == 'y':
-        df = df[(df[colunm] >= lower_bound) & (df[colunm] <= upper_bound)]
-        print("Outliers removed successfully!")
+    outliers = df[(df[colunm] < lower_bound) | (df[colunm] > upper_bound)]
+    num_outliers = outliers.shape[0]
+    print(f"Lower Bound: {lower_bound}")
+    print(f"Upper Bound: {upper_bound}")
+    print(f"Number of outliers detected: {num_outliers}")
+    if num_outliers > 0:
+        choice = input("Do you want to remove outliers? (y/n): ").strip().lower()
+        if choice == 'y':
+            before = df.shape[0]
+            df.drop(outliers.index, inplace=True)
+            after = df.shape[0]
+            print(f"Outliers removed successfully! {before - after} rows were deleted.")
+        else:
+            print("Operation canceled.")
     else:
-        print("Operation canceled!")
+        print("No outliers detected.")
+
 
 def correlation_matrix(df):
     df_numeric = df.select_dtypes(include=['number'])
