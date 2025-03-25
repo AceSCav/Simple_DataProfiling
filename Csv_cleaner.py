@@ -35,19 +35,39 @@ def first_nLines(df):
     print(df.head(n))
 
 def null_cleaner(df):
-    colunm = input('Enter the name of the column you want to remove null values: ')
-    df[colunm] = df[colunm].dropna()
-    print('Null values removed successfully!')
+    colunm = input('Enter the name of the column you want to remove null values: ').strip()
+    
+    if colunm not in df.columns:
+        print("Column not found. Operation canceled.")
+        return
+    
+    before = df.shape[0]  # Número de linhas antes da remoção
+    df.dropna(subset=[colunm], inplace=True)
+    after = df.shape[0]  # Número de linhas depois da remoção
+
+    removed = before - after
+    print(f"Null values removed! {removed} rows were deleted.") if removed > 0 else print("No null values found.")
+
 
 def duplicate_cleaner(df):
     colunms = []
-    while input == 'y':
-        colunm = input('Enter the name of the column you want to remove duplicates: ')
-        colunms.append(colunm.lower())
-        input = input('Do you want to remove more columns? y/n: ')
 
-    df = df.drop_duplicates(subset=colunms, keep='first', inplace=True)
-    print('Duplicates removed successfully!')
+    while True:
+        colunm = input('Enter the name of the column you want to remove duplicates (or type "done" to finish): ').strip()
+        if colunm.lower() == "done":
+            break
+        colunms.append(colunm)
+
+    if not colunms:  # Verifica se a lista está vazia
+        print("No columns selected. Operation canceled.")
+        return
+
+    before = df.shape[0]
+    df.drop_duplicates(subset=colunms, keep='first', inplace=True)
+    after = df.shape[0]
+
+    print(f"Duplicates removed! {before - after} rows were deleted.")
+
 
 def outlier_checker(df):
     colunm = input("Enter the name of the column you want to check for outliers:")
